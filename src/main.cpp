@@ -56,7 +56,8 @@ class Game{
 		int w,h;
 		short** screen;
 		//game
-		short dir=0;
+		short dir=1;
+		short last_dir;
 		bool apple=false;
 		int points=0;
 		//graphics
@@ -78,6 +79,7 @@ void Game::init(){
 		screen[i] = new short[w];	
 	
 	body head;
+	last_dir = -1*dir;
 
        	head.x = int(w/2);	
        	head.y = int(h/2);	
@@ -123,15 +125,15 @@ void Game::spawn_apple(){
 
 void Game::input(char in){
 	map<char,int> movement = {
-		{'h',0},
-		{'j',1},
+		{'h',1},
+		{'j',-2},
 		{'k',2},
-		{'l',3},
+		{'l',-1},
 		
-		{'q',0},
-		{'s',1},
+		{'a',1},
+		{'s',-2},
 		{'w',2},
-		{'d',3},
+		{'d',-1},
 
 		{'[',10},
 		{']',11}
@@ -144,7 +146,13 @@ void Game::input(char in){
 		
 		return;
 	}	
+
+	last_dir = dir;
 	dir = movement[in];	
+	
+	//validate input
+	
+	if (dir == -1 * last_dir) dir = last_dir;
 }
 
 void Game::frame_processor(){
@@ -163,17 +171,17 @@ void Game::frame_processor(){
 		tail[i].head = false;
 	}
 
-	if(dir == 0){
+	if(dir == 1){ //left
 		tail[0].x = (tail[0].x-1 < 0)?0:tail[0].x-1;		
 	}
-	else if(dir == 1){
+	else if(dir == -2){ //down
 		tail[0].y = (tail[0].y+1 >= h)?h-1:tail[0].y+1;		
 	}
-	else if(dir == 2){
+	else if(dir == 2){ // up
 		tail[0].y = (tail[0].y-1 < 0)?0:tail[0].y-1;		
 
 	}
-	else if(dir == 3){
+	else if(dir == -1){ // right
 		tail[0].x = (tail[0].x+1 >= w)?w-1:tail[0].x+1;		
 
 	}
@@ -247,12 +255,14 @@ void Game::loop(){
 
 	raw_mode_on();
 	while(game_loop){
+		//check input
 		if(kbhit()){
 			temp = getch();
 			input(temp);
 			raw_mode_off();
 			raw_mode_on();
 		}	
+		//genenerate and draw frame
 		if(fc >= fpi){
 			draw_frame();
 			fc=0;
@@ -268,5 +278,5 @@ int main(){
 	int w,h;
 	cout << "w|h\n";
 	cin >> w >> h;
-	Game snake(w,h,1500000);
+	Game snake(w,h,200000);
 }
