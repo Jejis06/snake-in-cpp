@@ -26,6 +26,8 @@ class Game{
 
 		//Game functions
 		void loop();
+		void gameover();
+		bool endgame();
 
 		void input(char in);
 		void frame_processor();
@@ -55,14 +57,39 @@ class Game{
 		int fpi=110000;
 		int w,h;
 		short** screen;
+
 		//game
+		bool game_loop=true;
 		short dir=1;
 		short last_dir;
 		bool apple=false;
 		int points=0;
+
 		//graphics
 		int surround = 2;
 		int thicness = 2;
+		
+		//maps
+		map<char,int> movement = {
+			{'h',1},
+			{'j',-2},
+			{'k',2},
+			{'l',-1},
+			
+			{'a',1},
+			{'s',-2},
+			{'w',2},
+			{'d',-1},
+
+			{'[',10},
+			{']',11}
+		};
+		map<int,char> sprites = {
+			{0,' '},
+			{1,'#'},
+			{2,'@'},
+			{3,'&'}
+		};
 
 };
 //Main game structs
@@ -119,25 +146,10 @@ void Game::spawn_apple(){
 	}
 	
 	screen[ry][rx] = 3;	
-
 	apple = true;
 }
 
 void Game::input(char in){
-	map<char,int> movement = {
-		{'h',1},
-		{'j',-2},
-		{'k',2},
-		{'l',-1},
-		
-		{'a',1},
-		{'s',-2},
-		{'w',2},
-		{'d',-1},
-
-		{'[',10},
-		{']',11}
-	};
 	if (movement[in] >= 10){
 		bool ch = movement[in] - 10;
 
@@ -151,8 +163,26 @@ void Game::input(char in){
 	dir = movement[in];	
 	
 	//validate input
-	
 	if (dir == -1 * last_dir) dir = last_dir;
+}
+
+void Game::gameover(){
+	//end game
+	system("clear");
+	cout << "game ended\n";
+	cout << "points : " << points << '\n';
+	game_loop = false;
+}
+
+bool Game::endgame(){
+	return (
+	(tail[0].x < 0)		||
+	(tail[0].y >= h) 	||
+	(tail[0].y < 0) 	||
+	(tail[0].x >= w) 	||
+	(screen[tail[0].y][tail[0].x] == 1)
+	);
+	
 }
 
 void Game::frame_processor(){
@@ -172,19 +202,22 @@ void Game::frame_processor(){
 	}
 
 	if(dir == 1){ //left
-		tail[0].x = (tail[0].x-1 < 0)?0:tail[0].x-1;		
+		tail[0].x -= 1; 
 	}
 	else if(dir == -2){ //down
-		tail[0].y = (tail[0].y+1 >= h)?h-1:tail[0].y+1;		
+		tail[0].y += 1; 
 	}
 	else if(dir == 2){ // up
-		tail[0].y = (tail[0].y-1 < 0)?0:tail[0].y-1;		
+		tail[0].y -= 1; 
 
 	}
 	else if(dir == -1){ // right
-		tail[0].x = (tail[0].x+1 >= w)?w-1:tail[0].x+1;		
+		tail[0].x += 1;
 
 	}
+	
+
+	if(endgame()) return;
 	
 	//process points
 	body temp = tail[0];
@@ -219,25 +252,16 @@ void Game::draw_hor_border(){
 void Game::draw_frame(){
 
 	frame_processor();
-
+	
 	system("clear");
-	cout <<points << " | " <<fpi << " | " << tail.size() << '\n';
+	cout <<points << " | " <<fpi << " | " << tail.size() << " | x: "<< tail[0].x << " y: " << tail[0].y<< " | w: " << w << " h: "<< h <<'\n';
 	
 	draw_ver_border();
 
 	for(int y=0;y<h;y++){
 		draw_hor_border();
 		for(int x=0;x<w;x++){
-			if (screen[y][x] == 1){
-				cout << '#';
-			}
-			else if (screen[y][x] == 2){
-				cout << '@';
-			}
-			else if (screen[y][x] == 3){
-				cout << '&';
-			}
-			else cout << ' ';
+			cout << sprites[screen[y][x]];
 			cout << ' ';
 		}
 		draw_hor_border();
@@ -251,7 +275,6 @@ void Game::draw_frame(){
 void Game::loop(){
 	char temp;
 	int fc=0;
-	bool game_loop=true;
 
 	raw_mode_on();
 	while(game_loop){
@@ -266,8 +289,10 @@ void Game::loop(){
 		if(fc >= fpi){
 			draw_frame();
 			fc=0;
+			if(endgame()) gameover();			
 		}
 		fc++;//incremate frame count
+	
 	}
 	raw_mode_on();
 	tcflush(0, TCIFLUSH);
@@ -278,5 +303,5 @@ int main(){
 	int w,h;
 	cout << "w|h\n";
 	cin >> w >> h;
-	Game snake(w,h,200000);
+	Game snake(w,h,400000);
 }
