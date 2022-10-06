@@ -3,6 +3,7 @@
 #include <vector>
 #include "CORE.h"
 #include <stdlib.h>
+#include <string>
 
 using namespace std;
 
@@ -38,6 +39,8 @@ class Game{
 		void draw_frame();
 		void draw_ver_border();
 		void draw_hor_border();
+		string rgb(int r, int g, int b);
+		string Color(string foreground, string background="");
 
 		//constructor/destructor
 		Game(int iw, int ih, int FPI){
@@ -52,6 +55,13 @@ class Game{
 			delete[] screen;
 		}
 	private:
+		//colors
+		string color_light = rgb(208,208,88);  
+		string color_mid = rgb(160,168,64);
+		string color_dim = rgb(112,128,40);
+		string color_dark = rgb(64,80,16);
+		string color_black = rgb(0,0,0);
+
 		//sys
 		vector<body> tail;
 		int fpi=110000;
@@ -84,11 +94,11 @@ class Game{
 			{'[',10},
 			{']',11}
 		};
-		map<int,char> sprites = {
-			{0,' '},
-			{1,'#'},
-			{2,'@'},
-			{3,'&'}
+		map<int,string> sprites = {
+			{0,Color(color_light,color_light) + " "},
+			{1,Color(color_dark,color_dark) + "#"},
+			{2,Color(color_dark, color_dark) + "@"},
+			{3,Color(color_dark, color_dark) + "&"}
 		};
 
 };
@@ -237,16 +247,36 @@ void Game::frame_processor(){
 }
 
 void Game::draw_ver_border(){
+	cout << Color("",color_dark);
 	for(int i=0;i < w*2 + (surround*thicness);i++){
 		cout << "-";
 	}
+	cout << Color("",color_black);
 	cout << '\n';
 }
 
 void Game::draw_hor_border(){
+	cout << Color("",color_dark);
 	for(int i=0;i<int(surround/2)*thicness;i++){
 		cout << "|";
 	}
+	cout << Color("",color_black);
+}
+
+string Game::Color(string foreground, string background){
+	/*
+		\033[38;2;<r>;<g>;<b>m     #Select RGB foreground color
+		\033[48;2;<r>;<g>;<b>m     #Select RGB background color
+
+		\033[38;2;<r>;<g>;<b>;48;2;<r>;<g>;<b>m
+	*/
+	if(foreground == "") return "\033[48;2" + background + 'm';
+	else if(background == "") return "\033[38;2" + foreground + 'm';
+	return "\033[38;2" + foreground + ";48;2" + background + 'm';
+}
+
+string Game::rgb(int r, int g, int b){
+	return ';' + to_string(r) + ';' + to_string(g) + ';' + to_string(b);	
 }
 
 void Game::draw_frame(){
@@ -273,23 +303,21 @@ void Game::draw_frame(){
 
 //Game loop
 void Game::loop(){
-	char temp;
 	int fc=0;
 
 	raw_mode_on();
 	while(game_loop){
 		//check input
 		if(kbhit()){
-			temp = getch();
-			input(temp);
+			input(getch());
 			raw_mode_off();
 			raw_mode_on();
 		}	
 		//genenerate and draw frame
 		if(fc >= fpi){
+			if(endgame()) gameover();			
 			draw_frame();
 			fc=0;
-			if(endgame()) gameover();			
 		}
 		fc++;//incremate frame count
 	
