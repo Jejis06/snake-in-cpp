@@ -56,11 +56,12 @@ class Game{
 		}
 	private:
 		//colors
+		string color_clear = "\033[0m";
+
 		string color_light = rgb(208,208,88);  
 		string color_mid = rgb(160,168,64);
 		string color_dim = rgb(112,128,40);
 		string color_dark = rgb(64,80,16);
-		string color_black = rgb(0,0,0);
 
 		//sys
 		vector<body> tail;
@@ -74,6 +75,7 @@ class Game{
 		short last_dir;
 		bool apple=false;
 		int points=0;
+		vector<int> bus;
 
 		//graphics
 		int surround = 2;
@@ -180,6 +182,7 @@ void Game::gameover(){
 	//end game
 	system("clear");
 	cout << "game ended\n";
+	cout << " x: " << tail[0].x << " y: " << tail[0].y << '\n';
 	cout << "points : " << points << '\n';
 	game_loop = false;
 }
@@ -247,20 +250,20 @@ void Game::frame_processor(){
 }
 
 void Game::draw_ver_border(){
-	cout << Color("",color_dark);
+	cout << Color(color_dark,color_dark);
 	for(int i=0;i < w*2 + (surround*thicness);i++){
 		cout << "-";
 	}
-	cout << Color("",color_black);
+	cout << color_clear; 
 	cout << '\n';
 }
 
 void Game::draw_hor_border(){
-	cout << Color("",color_dark);
+	cout << color_clear << Color(color_dark,color_dark);
 	for(int i=0;i<int(surround/2)*thicness;i++){
 		cout << "|";
 	}
-	cout << Color("",color_black);
+	cout << color_clear;
 }
 
 string Game::Color(string foreground, string background){
@@ -282,6 +285,8 @@ string Game::rgb(int r, int g, int b){
 void Game::draw_frame(){
 
 	frame_processor();
+
+	if(endgame()) return;
 	
 	system("clear");
 	cout <<points << " | " <<fpi << " | " << tail.size() << " | x: "<< tail[0].x << " y: " << tail[0].y<< " | w: " << w << " h: "<< h <<'\n';
@@ -315,9 +320,9 @@ void Game::loop(){
 		}	
 		//genenerate and draw frame
 		if(fc >= fpi){
-			if(endgame()) gameover();			
 			draw_frame();
 			fc=0;
+			if(endgame()) gameover();			
 		}
 		fc++;//incremate frame count
 	
@@ -331,5 +336,5 @@ int main(){
 	int w,h;
 	cout << "w|h\n";
 	cin >> w >> h;
-	Game snake(w,h,400000);
+	Game snake(w,h,1200000);
 }
