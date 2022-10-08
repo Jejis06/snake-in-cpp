@@ -36,6 +36,7 @@ class Game{
 		void spawn_apple();
 		void init();
 
+		void info(string in);
 		void draw_frame();
 		void draw_ver_border();
 		void draw_hor_border();
@@ -180,10 +181,6 @@ void Game::input(char in){
 
 void Game::gameover(){
 	//end game
-	system("clear");
-	cout << "game ended\n";
-	cout << " x: " << tail[0].x << " y: " << tail[0].y << '\n';
-	cout << "points : " << points << '\n';
 	game_loop = false;
 }
 
@@ -249,21 +246,50 @@ void Game::frame_processor(){
 
 }
 
+//Mixed up names TODO: fix
+
 void Game::draw_ver_border(){
-	cout << Color(color_dark,color_dark);
-	for(int i=0;i < w*2 + (surround*thicness);i++){
-		cout << "-";
+	
+	int S = w*2 + (surround*thicness)-4;
+
+	cout << Color(color_mid,color_dark);
+	cout << Color(color_mid,color_dark) << "||";
+	for(int i=0;i < int(S/2);i++){
+		cout << "- ";
 	}
+	cout << Color(color_mid,color_dark) << "||";
 	cout << color_clear; 
 	cout << '\n';
 }
 
 void Game::draw_hor_border(){
-	cout << color_clear << Color(color_dark,color_dark);
+	cout << color_clear << Color(color_mid,color_dark);
 	for(int i=0;i<int(surround/2)*thicness;i++){
 		cout << "|";
 	}
 	cout << color_clear;
+}
+
+void Game::info(string in){
+	
+	int S = w*2 + (surround*thicness)-3;
+	int mid = int(S/2) - int(in.size()/2);
+
+	cout << Color(color_mid,color_dark) << "||";
+	cout << Color(color_light, color_light);
+	for(int i=0; i < S ;i++){
+		if (i == mid){
+			cout << Color(color_dark, color_light) << in;
+			i+=in.size();
+			continue;
+		}
+		cout << " ";
+	}
+	
+	cout << Color(color_mid,color_dark) << "||";
+	cout << color_clear; 
+	cout << '\n';
+
 }
 
 string Game::Color(string foreground, string background){
@@ -286,24 +312,40 @@ void Game::draw_frame(){
 
 	frame_processor();
 
-	if(endgame()) return;
-	
+	string endmessage = "game over";	
+
 	system("clear");
-	cout <<points << " | " <<fpi << " | " << tail.size() << " | x: "<< tail[0].x << " y: " << tail[0].y<< " | w: " << w << " h: "<< h <<'\n';
+	//cout <<points << " | " <<fpi << " | " << tail.size() << " | x: "<< tail[0].x << " y: " << tail[0].y<< " | w: " << w << " h: "<< h <<'\n';
 	
+	draw_ver_border();
+	info("Snake");
+	draw_ver_border();
 	draw_ver_border();
 
 	for(int y=0;y<h;y++){
+
+		if (y == int(h/2) && endgame()){
+			info(endmessage);
+			continue;
+		}
+
 		draw_hor_border();
+
 		for(int x=0;x<w;x++){
-			cout << sprites[screen[y][x]];
-			cout << ' ';
+			if (!endgame()){
+				cout << sprites[screen[y][x]];
+				cout << ' ';
+			}
+			else{
+				cout << Color("",color_light) << "  ";
+			}
 		}
 		draw_hor_border();
 		cout << '\n';
 	}
 	draw_ver_border();
-	
+	info(to_string(points));
+	draw_ver_border();
 }
 
 //Game loop
@@ -334,7 +376,12 @@ void Game::loop(){
 
 int main(){
 	int w,h;
-	cout << "w|h\n";
-	cin >> w >> h;
+	cout << "Snake in terminal\n";
+	cout << "Recomended settings w:20 h:20\n\n!!!Important!!!\nTo change snake speed press `[` to decrease and `]` to increase speed\n\n";
+	
+	cout << "width : ";
+	cin >> w;
+	cout << "height : ";
+	cin >> h;
 	Game snake(w,h,1200000);
 }
