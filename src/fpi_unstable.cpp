@@ -49,7 +49,7 @@ class Game{
 			w = iw;
 			h = ih;
 			
-			delay = FPI;
+			if (FPI > 0) fpi = FPI;
 
 			init();	
 		}
@@ -67,7 +67,7 @@ class Game{
 
 		//sys
 		vector<body> tail;
-		int delay;
+		int fpi=110000;
 		int w,h;
 		short** screen;
 
@@ -167,8 +167,8 @@ void Game::input(char in){
 	if (movement[in] >= 10){
 		bool ch = movement[in] - 10;
 
-		if (ch) delay+= 10;
-		else delay-= 10;
+		if (ch) fpi += 100000;
+		else fpi -= 100000;
 		
 		return;
 	}	
@@ -316,7 +316,7 @@ void Game::draw_frame(){
 	string endmessage = "game over";	
 
 	system("clear");
-//cout <<points << " | " <<delay<< " | " << tail.size() << " | x: "<< tail[0].x << " y: " << tail[0].y<< " | w: " << w << " h: "<< h <<'\n';
+	//cout <<points << " | " <<fpi << " | " << tail.size() << " | x: "<< tail[0].x << " y: " << tail[0].y<< " | w: " << w << " h: "<< h <<'\n';
 	
 	draw_ver_border();
 	info("Snake");
@@ -351,8 +351,7 @@ void Game::draw_frame(){
 
 //Game loop
 void Game::loop(){
-
-	auto t0 = chrono::high_resolution_clock::now();
+	int fc=0;
 
 	raw_mode_on();
 	while(game_loop){
@@ -362,15 +361,13 @@ void Game::loop(){
 			raw_mode_off();
 			raw_mode_on();
 		}	
-		auto t1 = chrono::high_resolution_clock::now();
-		float dt = chrono::duration<float, chrono::milliseconds::period>(t1 - t0).count();
-
 		//genenerate and draw frame
-		if(dt > delay){
-			t0 = t1;
+		if(fc >= fpi){
 			draw_frame();
+			fc=0;
 			if(endgame()) gameover();			
 		}
+		fc++;//incremate frame count
 	
 	}
 	raw_mode_on();
@@ -387,5 +384,5 @@ int main(){
 	cin >> w;
 	cout << "height : ";
 	cin >> h;
-	Game snake(w,h,144);
+	Game snake(w,h,1200000);
 }
